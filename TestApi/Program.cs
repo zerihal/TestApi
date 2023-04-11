@@ -1,7 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Diagnostics;
-using Testable.Base;
 using Testable.Interfaces;
 using TestApi;
 using TestApi.Helpers;
@@ -56,7 +53,6 @@ app.MapGet("/GuidTestableItem/{testableId}", async (string testableId, TestDb db
 // Route handlers to execute methods - the below just execute local functions and return the result 
 // as a RouteHandlerBuilder (looks like JSON in browser), that could potentially be parsed as JSON
 // or used for further action. 
-// Note that methods can be executed as Lambda expressions or instance methods too - see API ref guide
 app.MapGet("/SampleStr", SampleMethods.TestStringOut);
 app.MapGet("/SampleIntArr", SampleMethods.TestIntArrayOut);
 app.MapGet("/SampleObjArr", SampleMethods.TestObjArrayOut);
@@ -71,8 +67,8 @@ app.MapGet("/MultiTest", (int id, string method, Arg[] args) =>
     // it should be then possible to parse the objects and cast to the appropriate types for
     // the given method.
 
-    // Note: This method is for test purposes only, but might be handy to retain for additional
-    // testing and notes on what to do in such cases!
+    // Note: This method is for dev test purposes only, but retained for reference in case of use
+    // for something else later.
 
     var argsStr = string.Empty;
 
@@ -87,6 +83,10 @@ app.MapGet("/MultiTest", (int id, string method, Arg[] args) =>
     return Results.Text(rtn);
 });
 
+// Takes the HttpRequest JSON object and attempts to cast it to a MethodObject type, which is a lightweight
+// record with Testable object GUID (as string), method name and object arguments. This will then get the
+// Testable object from the DB by ID and attempt to execute the method with the arguments passed, returning
+// the object (or null if void) from the method.
 app.MapPost("/ExecuteMethod", async (HttpRequest methodRequest, TestDb db) =>
 {
     object? rtn = null;
@@ -111,35 +111,14 @@ app.MapPost("/ExecuteMethod", async (HttpRequest methodRequest, TestDb db) =>
     return Results.Ok(rtn);
 });
 
-// The below will not work - cannot take multiple args like a GET for a POST. Instead this 
-// should use a HttpRequest that is formatted as a JSON object which would have a model 
-// (create a new one) such as the following:
-// [Guid] TestableId
-// [string] MethodName
-// [object[]] Args -- Might need to use Arg object, maybe not - TBC
-// From this we'd create a skinny class that will allow us to find the Testable object in the
-// DB, call the execute method (or get/set property) and return a object array as a response
-// from the call ... see commented out sample below and API ref guide ...
-app.MapPost("/MultiPostTest", (int id, string method, Arg[] args) =>
+app.MapPost("/UploadTestable", async (IFormFile file, TestDb db) =>
 {
-    var argsStr = string.Empty;
+    // ToDo - check that the file is a DLL, and if so then put it somewhere so that it can be loaded
+    // and any TestableBase implementation loaded into the DB ...
 
-    foreach (var obj in args)
-    {
-        argsStr += $"{obj},";
-    }
+    var testObjImps = await db.TestObjectImps.ToListAsync();
 
-    argsStr = argsStr.TrimEnd(',');
-
-    var rtn = $"{id},{method},[{argsStr}]";
-    return Results.Ok(rtn);
+    return Results.Ok();
 });
-
-//app.MapPost("/", async (HttpRequest request) =>
-//{
-//    var person = await request.ReadFromJsonAsync<Person>();
-
-//    // ...
-//});
 
 app.Run();

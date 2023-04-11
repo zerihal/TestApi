@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Testable.Base;
+using Testable.Interfaces;
 using TestApi.TestImplementations;
 
 namespace TestApi
@@ -12,8 +13,22 @@ namespace TestApi
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<MathsTest>().HasBaseType<TestableBase>();
-            //base.OnModelCreating(modelBuilder);
+            // Get all types of ITestable in the app current domain and, excluding abstract (TestableBase) implementations
+            // and the interface itself, set base type of TestableBase so that these can be populated in in the DB set 
+            // (i.e. the TestObjectImps).
+
+            var type = typeof(ITestable);
+            var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(type.IsAssignableFrom);
+
+            foreach (var iTestableType in types) 
+            {
+                if (!(iTestableType.IsAbstract || iTestableType.IsInterface))
+                {
+                    modelBuilder.Entity(iTestableType).HasBaseType(typeof(TestableBase));
+                }
+            }
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

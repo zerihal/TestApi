@@ -5,19 +5,19 @@ using Testable.Interfaces;
 
 namespace Testable.Base
 {
-    public class TestableBase : ITestable
+    public abstract class TestableBase : ITestable
     {
         private const BindingFlags _flags = BindingFlags.Public | BindingFlags.Instance;
 
         public int ID { get; set; }
 
-        public virtual Guid TestableID => Guid.Empty;
+        public abstract Guid TestableID { get; }
 
-        public virtual string? Name { get; }
+        public abstract string? Name { get; }
 
-        public virtual string? Description { get; }
+        public abstract string? Description { get; }
 
-        public virtual string? Author { get; }
+        public abstract string? Author { get; }
 
         public IEnumerable<string> Methods
         {
