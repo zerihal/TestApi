@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Testable.Base;
 using Testable.Interfaces;
-using TestApi.TestImplementations;
 
 namespace TestApi
 {
