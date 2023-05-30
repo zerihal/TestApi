@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using Testable.Interfaces;
 using TestApi;
 using TestApi.Helpers;
@@ -115,6 +116,22 @@ app.MapPost("/UploadTestable", async (IFormFile file, TestDb db) =>
 {
     // ToDo - check that the file is a DLL, and if so then put it somewhere so that it can be loaded
     // and any TestableBase implementation loaded into the DB ...
+    try
+    {
+        var tempFileName = $"{Path.GetTempFileName()}_{file.FileName}.dll";
+        var tempFile = File.Create(tempFileName);
+        file.CopyTo(tempFile);
+        tempFile.Close();
+
+        var dll = Assembly.LoadFile(tempFileName);
+
+        // The above should work to load the dll. We then create instances any contained implementation of ITestable
+        // and then add these to the DB so that they can be returned or stuff can be done with them.
+    }
+    catch 
+    { 
+    
+    }
 
     var testObjImps = await db.TestObjectImps.ToListAsync();
 

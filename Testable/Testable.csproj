@@ -4,6 +4,17 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Testable web assembly</Title>
+    <Description>Testable web assembly base package required for
+generation of Testable dlls, which can be uploaded
+and executed from the Test API</Description>
+    <Copyright>(c) John Sweet</Copyright>
+    <AssemblyVersion>1.0.1.1</AssemblyVersion>
+    <FileVersion>1.0.1.1</FileVersion>
+    <Authors>JPS</Authors>
+    <Company>JPS Software Solutions</Company>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
