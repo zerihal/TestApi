@@ -2,6 +2,8 @@
 {
     public class Arg
     {
+        public const string DefaultArgStr = "TestApi.Models.Arg";
+
         public object? Object { get; set; } = null;
 
         public static bool TryParse(object obj, out Arg arg)
@@ -15,5 +17,7 @@
             arg = new Arg { Object = obj };
             return true;
         }
+
+        public override string ToString() => Object?.ToString() ?? DefaultArgStr;
     }
 }

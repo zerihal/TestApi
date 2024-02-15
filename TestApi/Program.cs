@@ -73,7 +73,7 @@ app.MapGet("/MultiTest", (int id, string method, Arg[] args) =>
 
     var argsStr = string.Empty;
 
-    foreach (var obj in args)
+    foreach (Arg obj in args)
     {
         argsStr += $"{obj},";
     }
@@ -88,6 +88,13 @@ app.MapGet("/MultiTest", (int id, string method, Arg[] args) =>
 // record with Testable object GUID (as string), method name and object arguments. This will then get the
 // Testable object from the DB by ID and attempt to execute the method with the arguments passed, returning
 // the object (or null if void) from the method.
+// 
+// This can be tested in Postman with a body of something like the below:
+// {
+//   "TestableIdStr":"{B510C950-F320-4F4A-8D61-588896FC1534}",
+//   "MethodName":"AddNumbers",
+//   "Args":[734,911]
+// }
 app.MapPost("/ExecuteMethod", async (HttpRequest methodRequest, TestDb db) =>
 {
     object? rtn = null;
