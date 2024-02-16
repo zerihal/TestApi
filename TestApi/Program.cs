@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using Testable.Base;
 using Testable.Interfaces;
 using TestApi;
 using TestApi.Helpers;
@@ -51,6 +52,7 @@ app.MapGet("/GuidTestableItem/{testableId}", async (string testableId, TestDb db
     }
 });
 
+// *** Sample methods for testing basic API operation ***
 // Route handlers to execute methods - the below just execute local functions and return the result 
 // as a RouteHandlerBuilder (looks like JSON in browser), that could potentially be parsed as JSON
 // or used for further action. 
@@ -113,36 +115,64 @@ app.MapPost("/ExecuteMethod", async (HttpRequest methodRequest, TestDb db) =>
     }
     else
     {
-        // ToDo - Maybe check to see if there is a DLL that should be loaded for this?
+        rtn = "Testable object or method not found";
     }
 
     return Results.Ok(rtn);
 });
 
+// Handle upload of DLL containing ITestable (TestableBase) implementations that can be interpretted and reflected
+// by this API.
+//
+// This can be tested in Postman with Post request of https://localhost:7286/UploadTestable and adding an appropriate
+// dll file to the form-data.
 app.MapPost("/UploadTestable", async (IFormFile file, TestDb db) =>
 {
-    // ToDo - check that the file is a DLL, and if so then put it somewhere so that it can be loaded
-    // and any TestableBase implementation loaded into the DB ...
+    var iTestables = new List<TestableBase>();
+
     try
     {
+        // Try and create a temp copy of the file that has been posted as a DLL
         var tempFileName = $"{Path.GetTempFileName()}_{file.FileName}.dll";
         var tempFile = File.Create(tempFileName);
         file.CopyTo(tempFile);
         tempFile.Close();
 
+        // Load the posted assembly (from temp file copy)
         var dll = Assembly.LoadFile(tempFileName);
 
-        // The above should work to load the dll. We then create instances any contained implementation of ITestable
-        // and then add these to the DB so that they can be returned or stuff can be done with them.
+        // Get the ITestable instances from the assembly
+        if (dll != null) 
+        {
+            var iTestableTypes = dll.GetTypes().Where(t => typeof(ITestable).IsAssignableFrom(t)).ToList();
+            
+            foreach (var iTestable in iTestableTypes)
+            {
+                try
+                {
+                    if (!(iTestable.IsAbstract || iTestable.IsInterface))
+                    {
+                        if (Activator.CreateInstance(iTestable) is TestableBase instance)
+                        {
+                            iTestables.Add(instance);
+                        }
+                    }               
+                }
+                catch
+                {
+                    // Error creating instance for TestableBase - just continue for now but to be better handled in future.
+                }
+            }
+        }
     }
     catch 
-    { 
-    
+    {
+        return Results.Problem("Unable to read or load file. Check that this is a valid assembly.");
     }
 
-    var testObjImps = await db.TestObjectImps.ToListAsync();
+    await Task.CompletedTask;
 
-    return Results.Ok();
+    return Results.Ok(iTestables);
 });
 
 app.Run();
